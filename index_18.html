@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Murciegalo — Devs</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;700;900&family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Bebas+Neue&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg:     #07070f;
+      --bg2:    #0e0e1a;
+      --cream:  #f0ece4;
+      --yellow: #ffe500;
+      --cyan:   #00ffe0;
+      --pink:   #ff2d78;
+      --lime:   #ccff00;
+      --border:       3px solid rgba(240,236,228,0.14);
+      --border-thick: 5px solid rgba(240,236,228,0.18);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      background: var(--bg);
+      color: var(--cream);
+      font-family: 'Space Mono', monospace;
+      overflow-x: hidden;
+      cursor: none;
+    }
+
+    /* grain */
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+      pointer-events: none; z-index: 9997; opacity: 0.8;
+    }
+
+    /* cursor */
+    .cursor {
+      width: 10px; height: 10px; border-radius: 50%;
+      background: var(--yellow);
+      position: fixed; top: 0; left: 0;
+      pointer-events: none; z-index: 9999;
+      mix-blend-mode: difference;
+    }
+    .cursor-ring {
+      width: 36px; height: 36px;
+      border: 2px solid rgba(240,236,228,0.5); border-radius: 50%;
+      position: fixed; top: 0; left: 0;
+      pointer-events: none; z-index: 9998;
+      transition: width 0.2s, height 0.2s, border-color 0.2s;
+    }
+
+    /* ── NAV ── */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 200;
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 1.2rem 2.5rem;
+      border-bottom: 1px solid rgba(240,236,228,0.1);
+      background: rgba(7,7,15,0.45);
+      backdrop-filter: blur(18px);
+    }
+    .nav-logo {
+      font-family: 'Unbounded', sans-serif;
+      font-weight: 900; font-size: 0.85rem;
+      letter-spacing: 0.1em; color: var(--yellow);
+      text-decoration: none;
+    }
+    .nav-links { display: flex; gap: 2rem; list-style: none; }
+    .nav-links a {
+      color: rgba(240,236,228,0.6); text-decoration: none;
+      font-size: 0.62rem; letter-spacing: 0.15em; text-transform: uppercase;
+      transition: color 0.2s;
+    }
+    .nav-links a:hover { color: var(--yellow); }
+
+    /* ── HERO ── */
+    .hero {
+      position: relative; width: 100%; height: 100vh;
+      overflow: hidden; border-bottom: var(--border-thick);
+      background: var(--bg);
+    }
+
+    /* BLOB CONTAINER */
+    .blobs {
+      position: absolute; inset: -20%;
+      width: 140%; height: 140%;
+      filter: blur(80px) saturate(1.4);
+      pointer-events: none;
+    }
+    .blob {
+      position: absolute;
+      border-radius: 50%;
+      opacity: 0.75;
+      mix-blend-mode: screen;
+      will-change: transform;
+    }
+    /* deep indigo */
+    .b1 { width: 55vw; height: 55vw; background: radial-gradient(circle, #3d1f8a 0%, transparent 70%); top: 5%; left: -5%; }
+    /* coral quemado */
+    .b2 { width: 45vw; height: 45vw; background: radial-gradient(circle, #c93b1e 0%, transparent 70%); top: 30%; right: 0%; }
+    /* teal profundo */
+    .b3 { width: 50vw; height: 50vw; background: radial-gradient(circle, #0d6e6e 0%, transparent 70%); bottom: -5%; left: 20%; }
+    /* violeta accento */
+    .b4 { width: 35vw; height: 35vw; background: radial-gradient(circle, #6b1fa8 0%, transparent 70%); top: 50%; left: 40%; }
+    /* ámbar muy oscuro */
+    .b5 { width: 30vw; height: 30vw; background: radial-gradient(circle, #8a4a00 0%, transparent 70%); top: 10%; right: 20%; }
+
+    /* dark overlay - bottom heavy so text pops */
+    .hero-overlay {
+      position: absolute; inset: 0;
+      background: 
+        radial-gradient(ellipse at 50% 0%, transparent 30%, rgba(7,7,15,0.5) 100%),
+        linear-gradient(to bottom, rgba(7,7,15,0.1) 0%, rgba(7,7,15,0.0) 40%, rgba(7,7,15,0.7) 100%);
+    }
+
+    .hero-content {
+      position: absolute; inset: 0;
+      display: flex; flex-direction: column;
+      justify-content: flex-end;
+      padding: 2.5rem; padding-top: 7rem;
+    }
+    .hero-tag {
+      font-size: 0.62rem; letter-spacing: 0.28em; text-transform: uppercase;
+      color: rgba(240,236,228,0.7);
+      margin-bottom: 1rem;
+      display: flex; align-items: center; gap: 0.8rem;
+    }
+    .hero-tag::before {
+      content: ''; display: inline-block;
+      width: 2rem; height: 1px;
+      background: rgba(240,236,228,0.45);
+    }
+    .hero h1 {
+      font-family: 'Unbounded', sans-serif;
+      font-size: clamp(3rem, 9vw, 8rem);
+      font-weight: 900; line-height: 0.9;
+      letter-spacing: -0.03em; margin-bottom: 2rem;
+      text-shadow: 0 2px 60px rgba(7,7,15,0.6);
+    }
+    .hero h1 em { font-style: normal; color: var(--yellow); display: block; }
+    .hero-desc {
+      max-width: 400px; font-size: 0.72rem;
+      line-height: 1.85; color: rgba(240,236,228,0.62);
+    }
+
+    /* ── MARQUEE ── */
+    .marquee-wrap {
+      overflow: hidden; background: var(--yellow);
+      padding: 0.5rem 0; border-bottom: var(--border);
+    }
+    .marquee-track {
+      display: flex;
+      animation: marquee 22s linear infinite; white-space: nowrap;
+    }
+    .marquee-track span {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1rem; color: var(--bg);
+      letter-spacing: 0.15em; padding: 0 2rem;
+    }
+    .marquee-track .sep { color: rgba(0,0,0,0.2); padding: 0; }
+    @keyframes marquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+
+    /* ── SECTION HEADER ── */
+    .section-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 1.8rem 2.5rem; border-bottom: var(--border);
+    }
+    .section-title { font-size: 0.62rem; letter-spacing: 0.3em; text-transform: uppercase; }
+    .section-count { font-size: 0.58rem; letter-spacing: 0.15em; color: rgba(240,236,228,0.28); }
+
+    /* ── GRID ── */
+    .projects { display: grid; grid-template-columns: repeat(12, 1fr); }
+    .project-card {
+      position: relative;
+      border-right: var(--border); border-bottom: var(--border);
+      padding: 2rem; overflow: hidden;
+      display: flex; flex-direction: column; min-height: 300px;
+      transition: background 0.25s;
+    }
+    .project-card:hover { background: var(--bg2); }
+    .project-card:hover .card-num { color: var(--yellow); }
+    .project-card:hover .card-arrow { transform: translate(4px, -4px); }
+
+    .span-8  { grid-column: span 8; }
+    .span-4  { grid-column: span 4; }
+    .span-6  { grid-column: span 6; }
+    .span-12 { grid-column: span 12; }
+    .no-br   { border-right: none; }
+
+    .card-num {
+      font-family: 'Bebas Neue', sans-serif; font-size: 0.82rem;
+      letter-spacing: 0.2em; color: rgba(240,236,228,0.16);
+      margin-bottom: auto; transition: color 0.2s;
+    }
+    .card-accent {
+      display: inline-block; font-size: 0.55rem;
+      letter-spacing: 0.18em; text-transform: uppercase;
+      padding: 0.2rem 0.5rem; border: 1px solid;
+      margin-bottom: 0.7rem; margin-top: 1.3rem;
+    }
+    .ac-yellow { color: var(--yellow); border-color: var(--yellow); }
+    .ac-cyan   { color: var(--cyan);   border-color: var(--cyan); }
+    .ac-pink   { color: var(--pink);   border-color: var(--pink); }
+    .ac-lime   { color: var(--lime);   border-color: var(--lime); }
+    .ac-cream  { color: rgba(240,236,228,0.5); border-color: rgba(240,236,228,0.22); }
+
+    .card-title {
+      font-family: 'Unbounded', sans-serif;
+      font-size: clamp(1.05rem, 2vw, 1.85rem);
+      font-weight: 900; line-height: 1.05;
+      letter-spacing: -0.02em; margin-bottom: 0.8rem;
+    }
+    .card-desc {
+      font-size: 0.66rem; line-height: 1.78;
+      color: rgba(240,236,228,0.5);
+      margin-bottom: 1.1rem; max-width: 34ch;
+    }
+    .card-tags { display: flex; flex-wrap: wrap; gap: 0.32rem; margin-bottom: 1.1rem; }
+    .tag {
+      font-size: 0.51rem; letter-spacing: 0.12em; text-transform: uppercase;
+      padding: 0.16rem 0.42rem;
+      background: rgba(240,236,228,0.06);
+      color: rgba(240,236,228,0.4);
+    }
+    .card-footer { display: flex; justify-content: space-between; align-items: center; margin-top: auto; }
+    .card-link {
+      font-size: 0.59rem; letter-spacing: 0.12em; text-transform: uppercase;
+      color: var(--cream); text-decoration: none;
+      border-bottom: 1px solid rgba(240,236,228,0.2); padding-bottom: 2px;
+      transition: color 0.2s, border-color 0.2s;
+    }
+    .card-link:hover { color: var(--yellow); border-color: var(--yellow); }
+    .card-arrow { font-size: 1.1rem; transition: transform 0.2s; }
+
+    .wip-badge {
+      position: absolute; top: 1.2rem; right: 1.2rem;
+      font-size: 0.49rem; letter-spacing: 0.12em; text-transform: uppercase;
+      background: var(--pink); color: #fff;
+      padding: 0.16rem 0.42rem; font-weight: 700;
+    }
+    .card-strip {
+      position: absolute; bottom: 0; left: 0; right: 0; height: 3px;
+      background: linear-gradient(90deg, #3d1f8a, #0d6e6e, #c93b1e);
+      transform: scaleX(0); transform-origin: left;
+      transition: transform 0.4s ease;
+    }
+    .project-card:hover .card-strip { transform: scaleX(1); }
+
+    /* DJ full-width */
+    .card-dj {
+      flex-direction: row; align-items: center;
+      justify-content: space-between; gap: 2rem; min-height: 180px;
+    }
+    .card-col { display: flex; flex-direction: column; }
+    .card-col-r { align-items: flex-end; flex-shrink: 0; }
+    .card-dj .card-title { font-size: clamp(2rem, 5vw, 4rem); }
+
+    /* ── ABOUT ── */
+    .about { display: grid; grid-template-columns: 1fr 1fr; border-top: var(--border-thick); }
+    .about-left { padding: 4rem 2.5rem; border-right: var(--border); }
+    .about-right { padding: 4rem 2.5rem; display: flex; flex-direction: column; justify-content: space-between; }
+    .about-label { font-size: 0.6rem; letter-spacing: 0.25em; text-transform: uppercase; color: var(--cyan); margin-bottom: 1.5rem; }
+    .about-title {
+      font-family: 'Unbounded', sans-serif;
+      font-size: clamp(1.8rem, 4vw, 3.2rem);
+      font-weight: 900; line-height: 1.05;
+      letter-spacing: -0.03em; margin-bottom: 1.5rem;
+    }
+    .about-title em { font-style: normal; color: var(--yellow); }
+    .about-text { font-size: 0.7rem; line-height: 1.88; color: rgba(240,236,228,0.54); max-width: 40ch; }
+    .services-list { list-style: none; margin-bottom: 2rem; }
+    .services-list li {
+      font-size: 0.66rem; padding: 0.8rem 0;
+      border-bottom: 1px solid rgba(240,236,228,0.08);
+      display: flex; justify-content: space-between; align-items: center;
+      color: rgba(240,236,228,0.6);
+    }
+    .services-list li::after { content: '→'; color: var(--yellow); }
+    .contact-cta {
+      display: inline-block; font-size: 0.68rem;
+      letter-spacing: 0.12em; text-transform: uppercase;
+      background: var(--yellow); color: var(--bg);
+      padding: 1rem 2rem; text-decoration: none; font-weight: 700;
+      transition: background 0.2s;
+    }
+    .contact-cta:hover { background: var(--cyan); }
+
+    /* ── FOOTER ── */
+    footer {
+      border-top: var(--border); padding: 1.4rem 2.5rem;
+      display: flex; justify-content: space-between; align-items: center;
+      flex-wrap: wrap; gap: 1rem;
+    }
+    footer span { font-size: 0.55rem; letter-spacing: 0.14em; color: rgba(240,236,228,0.25); text-transform: uppercase; }
+    .footer-logo { font-family: 'Unbounded', sans-serif; font-size: 0.82rem; font-weight: 900; letter-spacing: 0.1em; color: rgba(240,236,228,0.35); }
+
+    .fade-up { opacity: 0; transform: translateY(26px); transition: opacity 0.65s ease, transform 0.65s ease; }
+    .fade-up.visible { opacity: 1; transform: translateY(0); }
+
+    @media (max-width: 900px) {
+      .span-8,.span-4,.span-6 { grid-column: span 12; }
+      .no-br { border-right: var(--border); }
+      .span-12.no-br { border-right: none; }
+      .about { grid-template-columns: 1fr; }
+      .about-left { border-right: none; border-bottom: var(--border); }
+      .card-dj { flex-direction: column; align-items: flex-start; }
+      .card-col-r { align-items: flex-start !important; }
+    }
+    @media (max-width: 600px) {
+      nav { padding: 1rem 1.2rem; }
+      .hero-content { padding: 1.5rem; padding-top: 5rem; }
+      .section-header,.project-card,.about-left,.about-right,footer { padding: 1.5rem; }
+      .nav-links { display: none; }
+      .project-card { min-height: 240px; }
+      .blobs { filter: blur(60px) saturate(1.3); }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="cursor" id="cursor"></div>
+  <div class="cursor-ring" id="cursorRing"></div>
+
+  <!-- NAV -->
+  <nav>
+    <a class="nav-logo" href="#">MURCIEGALO</a>
+    <ul class="nav-links">
+      <li><a href="#work">Work</a></li>
+      <li><a href="#about">About</a></li>
+      <li><a href="/cdn-cgi/l/email-protection#8be6fef9e8e2eeeceae7e4a5e7ffefeacbece6eae2e7a5e8e4e6">Contact</a></li>
+    </ul>
+  </nav>
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="blobs">
+      <div class="blob b1"></div>
+      <div class="blob b2"></div>
+      <div class="blob b3"></div>
+      <div class="blob b4"></div>
+      <div class="blob b5"></div>
+    </div>
+    <div class="hero-overlay"></div>
+    <div class="hero-content">
+      <div class="hero-tag">Viña del Mar, Chile — 2026</div>
+      <h1>Web Design<br><em>&amp; Dev</em></h1>
+      <p class="hero-desc">Diseño y desarrollo de experiencias digitales — e-commerce, directorios, herramientas web y estrategia digital. Cada proyecto con identidad propia.</p>
+    </div>
+  </section>
+
+  <!-- MARQUEE -->
+  <div class="marquee-wrap">
+    <div class="marquee-track">
+      <span>E-COMMERCE</span><span class="sep">✦</span>
+      <span>DIRECTORIOS</span><span class="sep">✦</span>
+      <span>BRANDING</span><span class="sep">✦</span>
+      <span>HERRAMIENTAS WEB</span><span class="sep">✦</span>
+      <span>SHOPIFY</span><span class="sep">✦</span>
+      <span>GITHUB PAGES</span><span class="sep">✦</span>
+      <span>META ADS</span><span class="sep">✦</span>
+      <span>LOVABLE</span><span class="sep">✦</span>
+      <span>CONSULTORÍA DIGITAL</span><span class="sep">✦</span>
+      <span>E-COMMERCE</span><span class="sep">✦</span>
+      <span>DIRECTORIOS</span><span class="sep">✦</span>
+      <span>BRANDING</span><span class="sep">✦</span>
+      <span>HERRAMIENTAS WEB</span><span class="sep">✦</span>
+      <span>SHOPIFY</span><span class="sep">✦</span>
+      <span>GITHUB PAGES</span><span class="sep">✦</span>
+      <span>META ADS</span><span class="sep">✦</span>
+      <span>LOVABLE</span><span class="sep">✦</span>
+      <span>CONSULTORÍA DIGITAL</span><span class="sep">✦</span>
+    </div>
+  </div>
+
+  <!-- WORK -->
+  <div id="work">
+    <div class="section-header">
+      <span class="section-title">Selected Work</span>
+      <span class="section-count">11 Proyectos</span>
+    </div>
+    <div class="projects">
+
+      <article class="project-card span-8 fade-up">
+        <div class="card-strip"></div>
+        <div class="card-num">01</div>
+        <span class="card-accent ac-yellow">E-Commerce</span>
+        <h2 class="card-title">Ars Naturalis Studio</h2>
+        <p class="card-desc">Fine art prints y apparel de autor — estrategia de conversión en tres olas, Meta Ads + CAPI, Shopify optimización completa y calendario orgánico Instagram.</p>
+        <div class="card-tags"><span class="tag">Shopify</span><span class="tag">Meta Ads</span><span class="tag">CAPI</span><span class="tag">Judge.me</span><span class="tag">Email</span></div>
+        <div class="card-footer"><a class="card-link" href="https://arsnaturalis.com" target="_blank">arsnaturalis.com</a><span class="card-arrow">↗</span></div>
+      </article>
+
+      <article class="project-card span-4 no-br fade-up">
+        <div class="card-strip"></div>
+        <div class="card-num">02</div>
+        <span class="card-accent ac-lime">Directorio</span>
+        <h2 class="card-title">Guía de Dispensarios</h2>
+        <p class="card-desc">Directorio interactivo de dispensarios de cannabis medicinal a nivel nacional. 38 locales reales, Leaflet + OpenStreetMap, estética museo/curaduría.</p>
+        <div class="card-tags"><span class="tag">Leaflet.js</span><span class="tag">Lovable</span><span class="tag">Scraping</span></div>
+        <div class="card-footer"><a class="card-link" href="https://dispensarios.lovable.app/" target="_blank">dispensarios.lovable.app</a><span class="card-arrow">↗</span></div>
+      </article>
+
+      <article class="project-card span-4 fade-up">
+        <div class="card-strip"></div>
+        <div class="card-num">03</div>
+        <span class="card-accent ac-cyan">Tool / Widget</span>
+        <h2 class="card-title">FungiPharma Tool</h2>
+        <p class="card-desc">Recomendador de hongos medicinales en 4 versiones — de guía interactiva a widget embebible Shopify con integración de carrito.</p>
+        <div class="card-tags"><span class="tag">Shopify Widget</span><span class="tag">Cart API</span><span class="tag">JS</span></div>
+        <div class="card-footer"><a class="card-link" href="https://botiquinfungipharma.lovable.app" target="_blank">botiquinfungipharma.lovable.app</a><span class="card-arrow">↗</span></div>
+      </article>
+
+      <article class="project-card span-4 fade-up">
+        <div class="card-strip"></div>
+        <div class="card-num">04</div>
+        <span class="card-accent ac-pink">Landing Page</span>
+        <h2 class="card-title">Fitocann</h2>
+        <p class="card-desc">Sitio web para consultora de regulación cannábica en Chile. HTML estático, diseño profesional, deployado en dominio propio.</p>
+        <div class="card-tags"><span class="tag">HTML/CSS</span><span class="tag">GitHub Pages</span><span class="tag">Branding</span></div>
+        <div class="card-footer"><a class="card-link" href="https://fitocann.cl" target="_blank">fitocann.cl</a><span class="card-arrow">↗</span></div>
+      </article>
+
+      <article class="project-card span-4 no-br fade-up">
+        <div class="card-strip"></div>
+        <div class="card-num">05</div>
+        <span class="card-accent ac-pink">Campaña</span>
+        <h2 class="card-title">Unmatch Paragago</h2>
+        <p class="card-desc">Campaña web para la búsqueda de un donante de médula ósea — encontrar el match genético que salva una vida. Diseño urgente y humano.</p>
+        <div class="card-tags"><span class="tag">Campaña</span><span class="tag">Web</span><span class="tag">Salud</span></div>
+        <div class="card-footer"><a class="card-link" href="https://unmatchparagago.cl" target="_blank">unmatchparagago.cl</a><span class="card-arrow">↗</span></div>
+      </article>
+
+      <article class="project-card span-6 fade-up">
+        <div class="card-strip"></div>
+        <div class="card-num">06</div>
+        <span class="card-accent ac-lime">Web Tool</span>
+        <h2 class="card-title">Orientador Vocacional Chile</h2>
+        <p class="card-desc">Herramienta de orientación vocacional para jóvenes chilenos. Base de datos con USACH, PUC, INACAP, DUOC UC y más. Versión LIGHT + DARK con IA.</p>
+        <div class="card-tags"><span class="tag">Client-side JS</span><span class="tag">API Claude</span><span class="tag">GitHub Pages</span></div>
+        <div class="card-footer"><a class="card-link" href="https://murciegalo1986.github.io/guiavocacional" target="_blank">github.io/guiavocacional</a><span class="card-arrow">↗</span></div>
+      </article>
+
+      <article class="project-card span-6 no-br fade-up">
+        <div class="card-strip"></div>
+        <div class="card-num">07</div>
+        <span class="card-accent ac-yellow">Web Tool</span>
+        <h2 class="card-title">Fondos Concursables</h2>
+        <p class="card-desc">Orientador de fondos concursables chilenos. CORFO, FONDART, ANID y más — base de datos 100% client-side, sin backend ni dependencias externas.</p>
+        <div class="card-tags"><span class="tag">Client-side JS</span><span class="tag">Base de datos</span><span class="tag">GitHub Pages</span></div>
+        <div class="card-footer"><a class="card-link" href="https://murciegalo1986.github.io/fondos" target="_blank">github.io/fondos</a><span class="card-arrow">↗</span></div>
+      </article>
+
+      <article class="project-card span-4 fade-up">
+        <div class="wip-badge">En desarrollo</div>
+        <div class="card-strip"></div>
+        <div class="card-num">08</div>
+        <span class="card-accent ac-cyan">Directorio</span>
+        <h2 class="card-title">TERRAE</h2>
+        <p class="card-desc">Directorio de naturaleza para Chile — parques nacionales, playas, quebradas y senderos urbanos. Modelo de advertising embebido.</p>
+        <div class="card-tags"><span class="tag">Directorio</span><span class="tag">Naturaleza</span><span class="tag">Lovable</span></div>
+        <div class="card-footer"><a class="card-link" href="#">Próximamente</a><span class="card-arrow">↗</span></div>
+      </article>
+
+      <article class="project-card span-4 fade-up">
+        <div class="card-strip"></div>
+        <div class="card-num">09</div>
+        <span class="card-accent ac-cream">Portafolio</span>
+        <h2 class="card-title">Portafolio Diseño Gráfico</h2>
+        <p class="card-desc">Portafolio de diseño gráfico — identidades, branding, piezas editoriales y visuales bajo la marca Murciegalo.</p>
+        <div class="card-tags"><span class="tag">Diseño Gráfico</span><span class="tag">Branding</span><span class="tag">GitHub Pages</span></div>
+        <div class="card-footer"><a class="card-link" href="https://murciegalo1986.github.io/io" target="_blank">github.io/io</a><span class="card-arrow">↗</span></div>
+      </article>
+
+      <article class="project-card span-4 no-br fade-up">
+        <div class="card-strip"></div>
+        <div class="card-num">10</div>
+        <span class="card-accent ac-cream">CV</span>
+        <h2 class="card-title">Currículum Vitae</h2>
+        <p class="card-desc">CV digital interactivo — trayectoria como diseñador web, desarrollador y consultor con más de 20 años de experiencia en Chile y Latinoamérica.</p>
+        <div class="card-tags"><span class="tag">CV Digital</span><span class="tag">HTML/CSS</span><span class="tag">GitHub Pages</span></div>
+        <div class="card-footer"><a class="card-link" href="https://murciegalo1986.github.io/cv" target="_blank">github.io/cv</a><span class="card-arrow">↗</span></div>
+      </article>
+
+      <article class="project-card span-12 no-br card-dj fade-up">
+        <div class="card-strip"></div>
+        <div class="card-col">
+          <div class="card-num">11</div>
+          <span class="card-accent ac-yellow">DJ / Música</span>
+          <h2 class="card-title">DJ Murciegalo</h2>
+        </div>
+        <p class="card-desc" style="max-width:42ch;margin-bottom:0;">Presencia web del proyecto musical. DJ activo desde 2005, sets vinyl-only en Deep House, Microhouse, Ambient y Experimental. Proyectos: Sanasana.Club, Fancy Underground, Disconcerto, Música para Peces.</p>
+        <div class="card-col card-col-r">
+          <div class="card-tags" style="justify-content:flex-end;margin-bottom:1rem;">
+            <span class="tag">Vinyl Only</span><span class="tag">Deep House</span><span class="tag">Experimental</span>
+          </div>
+          <div class="card-footer" style="margin-top:0;">
+            <a class="card-link" href="https://murciegalo1986.github.io/dj" target="_blank">github.io/dj</a>
+            <span class="card-arrow" style="margin-left:1rem;">↗</span>
+          </div>
+        </div>
+      </article>
+
+    </div>
+  </div>
+
+  <!-- ABOUT -->
+  <section class="about" id="about">
+    <div class="about-left fade-up">
+      <p class="about-label">Sobre Murciegalo</p>
+      <h2 class="about-title">Diseño que <em>funciona.</em></h2>
+      <p class="about-text">Freelance web designer, developer y consultor digital basado en Viña del Mar. Más de 20 años construyendo experiencias digitales con identidad propia — desde e-commerce hasta directorios interactivos y herramientas client-side.<br><br>Stack: Claude, Lovable, Shopify, GitHub Pages, Adobe Creative Suite, Firefly.</p>
+    </div>
+    <div class="about-right fade-up">
+      <ul class="services-list">
+        <li>Web Design &amp; Desarrollo</li>
+        <li>E-Commerce &amp; Shopify</li>
+        <li>Estrategia Digital</li>
+        <li>Branding &amp; Identidad</li>
+        <li>Herramientas Web / Apps</li>
+        <li>Consultoría Meta Ads</li>
+      </ul>
+      <a class="contact-cta" href="/cdn-cgi/l/email-protection#7e130b0c1d171b191f121150120a1a1f3e19131f1712501d1113">Hablemos →</a>
+    </div>
+  </section>
+
+  <footer>
+    <span>© 2026 Murciegalo — Viña del Mar, Chile</span>
+    <span class="footer-logo">MURCIEGALO</span>
+    <span>Web Design &amp; Dev</span>
+  </footer>
+
+  <!-- GSAP CDN -->
+  <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script>
+    // ── GSAP BLOB ANIMATION ──
+    // Each blob gets independent moveX/moveY/rotate loops with Sine.easeInOut
+    // like the original experiment #3
+    function animBlob(el, cfg) {
+      gsap.to(el, {
+        x: cfg.x1, duration: cfg.d1,
+        ease: 'sine.inOut', repeat: -1, yoyo: true
+      });
+      gsap.to(el, {
+        y: cfg.y1, duration: cfg.d2,
+        ease: 'sine.inOut', repeat: -1, yoyo: true
+      });
+      gsap.to(el, {
+        rotation: cfg.r1, duration: cfg.d3,
+        ease: 'sine.inOut', repeat: -1, yoyo: true,
+        transformOrigin: '50% 50%'
+      });
+      gsap.to(el, {
+        scale: cfg.s1, duration: cfg.d4,
+        ease: 'sine.inOut', repeat: -1, yoyo: true
+      });
+    }
+
+    animBlob('.b1', { x1:  80, y1:  60, r1:  40, s1: 1.15, d1: 14, d2: 11, d3: 18, d4: 13 });
+    animBlob('.b2', { x1: -70, y1: -50, r1: -35, s1: 1.2,  d1: 12, d2: 16, d3: 14, d4: 10 });
+    animBlob('.b3', { x1:  50, y1: -40, r1:  25, s1: 1.1,  d1: 17, d2: 13, d3: 20, d4: 15 });
+    animBlob('.b4', { x1: -60, y1:  70, r1: -50, s1: 1.25, d1: 10, d2: 14, d3: 16, d4: 12 });
+    animBlob('.b5', { x1:  40, y1: -60, r1:  30, s1: 1.3,  d1: 16, d2: 10, d3: 12, d4: 17 });
+
+    // hue-rotate drift on the whole blob container
+    gsap.to('.blobs', {
+      filter: 'blur(80px) saturate(1.4) hue-rotate(30deg)',
+      duration: 20, ease: 'sine.inOut', repeat: -1, yoyo: true
+    });
+
+    // ── CURSOR ──
+    const cursor = document.getElementById('cursor');
+    const ring   = document.getElementById('cursorRing');
+    let mx=0,my=0,rx=0,ry=0;
+    document.addEventListener('mousemove', e => { mx=e.clientX; my=e.clientY; });
+    (function loop(){
+      cursor.style.transform=`translate(${mx-5}px,${my-5}px)`;
+      rx+=(mx-rx)*0.12; ry+=(my-ry)*0.12;
+      ring.style.transform=`translate(${rx-18}px,${ry-18}px)`;
+      requestAnimationFrame(loop);
+    })();
+    document.querySelectorAll('a,button,.project-card').forEach(el => {
+      el.addEventListener('mouseenter', ()=>{ ring.style.width='52px'; ring.style.height='52px'; ring.style.borderColor='var(--yellow)'; });
+      el.addEventListener('mouseleave', ()=>{ ring.style.width='36px'; ring.style.height='36px'; ring.style.borderColor='rgba(240,236,228,0.5)'; });
+    });
+
+    // ── FADE UP ──
+    const obs = new IntersectionObserver(entries => {
+      entries.forEach((e,i) => {
+        if(e.isIntersecting){ setTimeout(()=>e.
